@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.gradle/
+build/
+local.properties
+.env
+.env.*
+!.env.example
+**/google-services.json
+*.jks
+*.keystore
+.firebase/
+*-debug.log
+.DS_Store
+
+.local-backups/
+gha-creds-*.json
+
+# Local IDE and Kotlin state
+.idea/
+.kotlin/
+*.iml

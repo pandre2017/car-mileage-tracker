@@ -1,0 +1,37 @@
+{
+  "name": "car-mileage-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "check": "tsc --noEmit",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-car-mileage",
+    "seed": "tsx src/seed.ts",
+    "test:integration": "firebase emulators:exec --only firestore --project demo-car-mileage \"npm test\"",
+    "format": "prettier --write src test *.json",
+    "format:check": "prettier --check src test *.json",
+    "backup": "tsx src/backup.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "firebase-admin": "^14.5.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.0",
+    "firebase-tools": "^15.35.0",
+    "prettier": "^3.9.10",
+    "supertest": "^7.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
