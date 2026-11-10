@@ -33,10 +33,12 @@ class MileageViewModel(private val repository: MileageRepository, private val sc
             try { block(); message.value = null }
             catch (error: CancellationException) { throw error }
             catch (error: Exception) {
+                logOperationFailure("screen action", error)
                 if (error is retrofit2.HttpException && error.code() in listOf(401, 403)) blocked.value = true
                 message.value = when {
                     error is retrofit2.HttpException && error.code() == 403 -> "Access is not configured. Ask the administrator to provision your Google account and car."
                     error is retrofit2.HttpException && error.code() == 401 -> "Your session needs renewal. Sign in again with the same Google account."
+                    error is retrofit2.HttpException -> "Server request failed (HTTP ${error.code()}). See MileageApi in Logcat for the endpoint and request ID."
                     error is java.io.IOException -> "Could not connect. Cached records and pending entries are kept."
                     else -> error.message ?: "Please try again."
                 }

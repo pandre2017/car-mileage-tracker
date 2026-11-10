@@ -37,3 +37,42 @@ test("health is public; data requires valid identity and provisioning", async ()
     200,
   );
 });
+
+test("server errors correlate logs without exposing internal details", async () => {
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => {
+    logs.push(line);
+  };
+  try {
+    const failing = createApp(
+      {
+        ...store,
+        profile: async () => {
+          throw Object.assign(new Error("Firestore index missing"), {
+            code: 9,
+          });
+        },
+      },
+      async () => "allowed",
+    );
+    const response = await request(failing)
+      .get("/v1/me")
+      .set("X-Request-ID", "test-correlation-123")
+      .auth("private-test-token", { type: "bearer" });
+    assert.equal(response.status, 500);
+    assert.equal(response.headers["x-request-id"], "test-correlation-123");
+    assert.equal(response.body.code, "INTERNAL_ERROR");
+    assert.equal(
+      JSON.stringify(response.body).includes("Firestore index"),
+      false,
+    );
+    const log = JSON.parse(logs[0]!);
+    assert.equal(log.requestId, "test-correlation-123");
+    assert.equal(log.errorCode, "9");
+    assert.equal(log.errorMessage, "Firestore index missing");
+    assert.equal(logs.join("").includes("private-test-token"), false);
+  } finally {
+    console.error = original;
+  }
+});

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import express, { type ErrorRequestHandler } from "express";
 import { z } from "zod";
 import { ApiError, inputSchema, type Store } from "./domain.js";
@@ -8,6 +9,30 @@ export function createApp(
 ) {
   const app = express();
   app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    const supplied = req.header("x-request-id");
+    const requestId =
+      supplied && /^[a-zA-Z0-9-]{1,64}$/.test(supplied)
+        ? supplied
+        : randomUUID();
+    res.locals.requestId = requestId;
+    res.setHeader("X-Request-ID", requestId);
+    const started = Date.now();
+    res.on("finish", () =>
+      console.log(
+        JSON.stringify({
+          severity: res.statusCode >= 500 ? "ERROR" : "INFO",
+          message: "HTTP request completed",
+          requestId,
+          method: req.method,
+          route: req.route?.path ?? "unmatched",
+          status: res.statusCode,
+          durationMs: Date.now() - started,
+        }),
+      ),
+    );
+    next();
+  });
   app.use(express.json({ limit: "16kb" }));
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
@@ -78,7 +103,18 @@ export function createApp(
       JSON.stringify({
         severity: "ERROR",
         message: "Request failed",
+        requestId: res.locals.requestId,
+        route: _req.route?.path ?? "unmatched",
         errorType: error?.constructor?.name,
+        errorCode:
+          typeof error?.code === "number" || typeof error?.code === "string"
+            ? String(error.code).slice(0, 80)
+            : undefined,
+        // Server SDK errors explain failures such as missing indexes and IAM denial.
+        errorMessage: String(error?.message ?? "Unknown error")
+          .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+          .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[redacted token]")
+          .slice(0, 1500),
       }),
     );
     res.status(500).json({

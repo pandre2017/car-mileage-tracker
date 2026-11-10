@@ -22,7 +22,8 @@ class MileageApplication : Application() {
             auth = FirebaseAuth.getInstance(app)
         }
         val db = Room.databaseBuilder(this, LocalDatabase::class.java, "mileage.db").build()
-        val api = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL).addConverterFactory(GsonConverterFactory.create()).build().create(MileageApi::class.java)
+        val client = okhttp3.OkHttpClient.Builder().addInterceptor(ApiDiagnostics()).build()
+        val api = Retrofit.Builder().client(client).baseUrl(BuildConfig.API_BASE_URL).addConverterFactory(GsonConverterFactory.create()).build().create(MileageApi::class.java)
         repository = MileageRepository(db.dao(), api, auth)
     }
     fun enqueueSync() {

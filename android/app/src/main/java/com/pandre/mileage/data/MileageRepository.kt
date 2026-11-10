@@ -34,12 +34,13 @@ class MileageRepository(val dao: MileageDao, private val api: MileageApi, privat
                 dao.putEntries(listOf(result.entity(entry.carId)))
                 refreshUnlocked(entry.carId)
             } catch (error: HttpException) {
+                logOperationFailure("background sync", error)
                 when (error.code()) {
                     400, 409 -> dao.status(entry.id, "FAILED", error.response()?.errorBody()?.string()?.let { body -> runCatching { com.google.gson.JsonParser.parseString(body).asJsonObject["message"].asString }.getOrNull() } ?: "Check this record.")
                     401, 403 -> throw error
                     else -> if (error.code() >= 500 || error.code() == 429) retry = true else dao.status(entry.id, "FAILED", "Request rejected (${error.code()}).")
                 }
-            } catch (error: java.io.IOException) { retry = true }
+            } catch (error: java.io.IOException) { logOperationFailure("background sync", error); retry = true }
         }
         retry
     }
