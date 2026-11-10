@@ -42,12 +42,14 @@ Integration tests use the Firestore emulator to check duplicate retries, identit
 
 ## Real Firebase setup and manual provisioning
 
-1. Add Firebase to the existing Google Cloud project `car-mileage-tracker-514210` and enable Google as an Authentication provider. Create a Firestore Standard/Native database in a suitable European region. Its location should match the future API region where possible.
+Copy `.firebaserc.example` to `.firebaserc` and replace `YOUR_PROJECT_ID` with your own project ID. The real `.firebaserc` is local and ignored by Git.
+
+1. Add Firebase to the existing Google Cloud project `YOUR_PROJECT_ID` and enable Google as an Authentication provider. Create a Firestore Standard/Native database in a suitable European region. Its location should match the future API region where possible.
 2. Register Android package `com.pandre.mileage`, add the debug/release signing fingerprints, and copy Firebase API key, app ID, project ID and OAuth **web/server client ID** into the Android build configuration described in `../android/README.md`.
 3. Each user signs in once through the Android app. First access may be denied until provisioning. In Firebase Console > Authentication > Users, copy each Firebase UID.
 4. In Firestore, create `users/UID` for each person: `enabled` boolean true, `displayName` string, `email` string.
 5. Create `cars/family-car` (or another simple ID) with `displayName` string, `memberUids` array containing the two exact UIDs, and `revision` integer 0. Repeat for each shared car.
-6. Deploy the deny-all mobile/web rules in `firestore.rules`: `npx firebase deploy --only firestore:rules --project car-mileage-tracker-514210`. The API server SDK uses IAM and performs its own authorization; rules do not restrict the server SDK.
+6. Deploy the deny-all mobile/web rules in `firestore.rules`: `npx firebase deploy --only firestore:rules --project YOUR_PROJECT_ID`. The API server SDK uses IAM and performs its own authorization; rules do not restrict the server SDK.
 7. Confirm both users see the car, while a third unprovisioned account receives HTTP 403. Set a user's `enabled` to false to disable future API access. Manual console corrections appear on the next complete history refresh.
 
 Never commit personal UID lists, tokens, service-account keys or downloaded configuration files. No membership API is exposed.
@@ -57,16 +59,16 @@ Never commit personal UID lists, tokens, service-account keys or downloaded conf
 This step provisions billable-capable resources. Check the project's billing settings and current free allowances first. Substitute your real project ID and region below; these are templates, not automatically executed scripts.
 
 ```sh
-gcloud config set project car-mileage-tracker-514210
+gcloud config set project YOUR_PROJECT_ID
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com firestore.googleapis.com
 gcloud iam service-accounts create mileage-api --display-name='Mileage API'
-gcloud projects add-iam-policy-binding car-mileage-tracker-514210 \
-  --member='serviceAccount:mileage-api@car-mileage-tracker-514210.iam.gserviceaccount.com' \
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+  --member='serviceAccount:mileage-api@YOUR_PROJECT_ID.iam.gserviceaccount.com' \
   --role='roles/datastore.user'
 gcloud run deploy mileage-api --source . --region europe-west1 \
-  --service-account mileage-api@car-mileage-tracker-514210.iam.gserviceaccount.com \
+  --service-account mileage-api@YOUR_PROJECT_ID.iam.gserviceaccount.com \
   --allow-unauthenticated --min-instances 0 --max-instances 2 \
-  --cpu 1 --memory 512Mi --set-env-vars GCLOUD_PROJECT=car-mileage-tracker-514210
+  --cpu 1 --memory 512Mi --set-env-vars GCLOUD_PROJECT=YOUR_PROJECT_ID
 ```
 
 Deploy from `backend/`. The deployer needs the appropriate build/deploy permissions; the runtime account needs Firestore access. Public Cloud Run invocation allows Express to receive Firebase-token requests; all data routes still verify Firebase identity. Set the returned HTTPS service URL as Android `API_BASE_URL`, with a trailing slash. Do not put a service-account key in the container.
@@ -78,7 +80,7 @@ A manual GitHub Actions deployment workflow is included. Configure repository va
 Use the Admin SDK with your local Application Default Credentials (or the emulator environment). Backups contain private account details and must stay outside Git:
 
 ```sh
-GCLOUD_PROJECT=car-mileage-tracker-514210 npm run backup -- export /secure/path/mileage.json
+GCLOUD_PROJECT=YOUR_PROJECT_ID npm run backup -- export /secure/path/mileage.json
 GCLOUD_PROJECT=EMPTY_TARGET_PROJECT npm run backup -- restore /secure/path/mileage.json
 ```
 

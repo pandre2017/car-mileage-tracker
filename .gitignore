@@ -20,3 +20,6 @@ gha-creds-*.json
 .idea/
 .kotlin/
 *.iml
+
+# Local Firebase project selection
+backend/.firebaserc

@@ -14,7 +14,7 @@ Personal Android fuel log for two Google-account users sharing cars. Kotlin/Comp
 
 Google credential sign-in integration, provisioning/membership authorization, shared-car listing, transactional fueling creation, full-history retrieval, integer money/volume storage, Room caching, pending uploads, WorkManager retry, and a Compose entry/history interface. The API rejects conflicting dates/odometer readings and treats identical request retries as one entry.
 
-Configuration is intentionally external: the APK builds without a Firebase project but sign-in requires your Firebase values. A real two-phone Google sign-in journey requires provisioning and deployment. Target Google Cloud project: `car-mileage-tracker-514210`. Intended private GitHub repository: `pandre2017/car-mileage-tracker`. Remote creation and cloud configuration remain pending authenticated access.
+Firebase and API settings are supplied through local configuration. See the Android and backend setup guides for details.
 
 ## Checks
 
@@ -38,5 +38,3 @@ Use Node.js 24 and JDK 21. Emulator integration tests require Java and download 
 - Fuel purchases are recorded; fuel consumption is not inferred.
 - One account per installation; clear app data to switch (unsynced entries are lost).
 - Both users and all shared cars are provisioned administratively.
-
-Cloud services have usage allowances, not a guaranteed zero bill. Review billing before enabling Cloud Run. Repository source contains no personal account details or cloud credentials.

@@ -26,7 +26,7 @@ Validated locally on 9 November 2026.
 
 ## Account configuration remaining
 
-The intended GitHub destination is the private repository `pandre2017/car-mileage-tracker`. Google Cloud project ID is `car-mileage-tracker-514210`.
+The intended GitHub destination is the private repository `pandre2017/car-mileage-tracker`. Google Cloud project ID is `YOUR_PROJECT_ID`.
 
 The GitHub remote has not been created or pushed. Firebase has been enabled, the Android app registered, Google sign-in configured, and local users/cars provisioned. The owner confirmed successful sign-in and shared data access from both an Android emulator and a physical phone using the Mac's LAN address. Cloud Run deployment and migration to hosted Firestore remain outstanding.
 
