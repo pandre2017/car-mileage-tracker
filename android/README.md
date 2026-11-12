@@ -1,9 +1,11 @@
 # Android app
 
+See [Android architecture and dependency injection](architecture.md) for module boundaries, UseCases, manual DI, state flow, synchronization and tests.
+
 Open this folder in Android Studio. Use JDK 21 for Gradle and Android SDK 36. Build with the committed wrapper:
 
 ```sh
-./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+./gradlew :domain:test :data:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :data:lintDebug
 ```
 
 The unconfigured debug build opens and explains the missing sign-in configuration. Supply these settings in `android/local.properties` alongside `sdk.dir`. This file is ignored by Git. Gradle project properties (from `-P` or `~/.gradle/gradle.properties`) take precedence over `local.properties`:
@@ -48,3 +50,15 @@ npm run dev
 Keep the Firestore emulator running. With the Auth emulator variable unset, the server verifies real Firebase ID tokens for the real project. In the Firestore emulator UI, select the real project namespace and manually provision `users/{realFirebaseUid}` and shared cars using the backend runbook. Records seeded under `demo-car-mileage` are in a different project namespace and will not appear. Both real users must sign in once before you copy their UIDs from Firebase Authentication. If needed, restart the emulators with `--project YOUR_PROJECT_ID` instead of the demo command so the emulator UI uses the same project namespace.
 
 This setup uses real Google Authentication with local application data. Cloud Run and a hosted Firestore database can be configured later. For an Android emulator, `10.0.2.2` reaches your Mac; for a physical phone, use a reachable LAN address instead and keep the connection local/trusted.
+
+## Architecture and tests
+
+See [Android conventions](../docs/ANDROID_CONVENTIONS.md) and [AGENTS.md](AGENTS.md) for dependency rules and the adapted AI skills. Kotlin style is checked with `bash scripts/kotlin-style.sh --check` from this Android folder. Unit tests use domain fakes and MockWebServer; Compose tests use an isolated test application and API 36 emulator, never live Firebase. The selected car ID uses SavedStateHandle; the current tests verify handle use and ViewModel cancellation, not full process-death restoration.
+
+## Gradle modules and AI guidance
+
+Sync Gradle after opening this project. `settings.gradle.kts` includes `:app`, `:domain` and `:data`. In Android Studio, select **Project** view to see their physical folders. Domain is Kotlin/JVM; data is an Android library for Room; app owns the UI, authentication UI and composition root.
+
+Android-specific guidance lives here: [AGENTS.md](AGENTS.md) and [the hidden .agents/skills directory](.agents/skills/). Kotlin tooling is in [scripts/](scripts/). They are not Android source modules.
+
+The ViewModel receives explicit domain UseCases. AddFuelEntryUseCase validates and saves before scheduling upload through SyncScheduler, implemented by WorkManagerSyncScheduler. A custom WorkerFactory injects SyncPendingFuelEntriesUseCase into the Worker. See [application UseCases](../docs/ANDROID_CONVENTIONS.md#application-usecases-and-outward-ports) for the responsibilities and test boundaries.

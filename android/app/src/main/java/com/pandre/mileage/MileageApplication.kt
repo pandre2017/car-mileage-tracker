@@ -2,44 +2,89 @@ package com.pandre.mileage
 
 import android.app.Application
 import androidx.room.Room
-import androidx.work.*
+import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.pandre.mileage.data.*
+import com.pandre.mileage.data.DefaultMileageRepository
+import com.pandre.mileage.data.FirebaseAuthSession
+import com.pandre.mileage.data.LocalDatabase
+import com.pandre.mileage.data.MileageApi
+import com.pandre.mileage.domain.MileageRepository
+import com.pandre.mileage.domain.usecase.AddFuelEntryUseCase
+import com.pandre.mileage.domain.usecase.ObserveCarHistoryUseCase
+import com.pandre.mileage.domain.usecase.ObserveCarsUseCase
+import com.pandre.mileage.domain.usecase.RefreshCarHistoryUseCase
+import com.pandre.mileage.domain.usecase.RefreshCarsUseCase
+import com.pandre.mileage.domain.usecase.SyncPendingFuelEntriesUseCase
+import com.pandre.mileage.platform.ApiDiagnostics
+import com.pandre.mileage.platform.MileageWorkerFactory
+import com.pandre.mileage.platform.WorkManagerSyncScheduler
+import com.pandre.mileage.platform.logOperationFailure
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
-class MileageApplication : Application() {
-    lateinit var repository: MileageRepository
-    var auth: FirebaseAuth? = null
-        private set
-    override fun onCreate() {
-        super.onCreate()
-        if (BuildConfig.FIREBASE_API_KEY.isNotBlank() && BuildConfig.FIREBASE_APP_ID.isNotBlank() && BuildConfig.FIREBASE_PROJECT_ID.isNotBlank()) {
-            val app = FirebaseApp.initializeApp(this, FirebaseOptions.Builder().setApiKey(BuildConfig.FIREBASE_API_KEY).setApplicationId(BuildConfig.FIREBASE_APP_ID).setProjectId(BuildConfig.FIREBASE_PROJECT_ID).build())
-            auth = FirebaseAuth.getInstance(app)
-        }
+class MileageApplication : Application(), Configuration.Provider {
+    override val workManagerConfiguration: Configuration
+        get() =
+            Configuration.Builder()
+                .setWorkerFactory(MileageWorkerFactory(syncPendingFuelEntries))
+                .build()
+
+    private val scheduler by lazy { WorkManagerSyncScheduler(this) }
+    val observeCars by lazy { ObserveCarsUseCase(repository) }
+    val observeCarHistory by lazy {
+        ObserveCarHistoryUseCase(repository)
+    }
+    val refreshCars by lazy {
+        RefreshCarsUseCase(repository, scheduler)
+    }
+    val refreshCarHistory by lazy {
+        RefreshCarHistoryUseCase(repository, scheduler)
+    }
+    val addFuelEntry by lazy {
+        AddFuelEntryUseCase(repository, scheduler)
+    }
+    val syncPendingFuelEntries by lazy {
+        SyncPendingFuelEntriesUseCase(repository)
+    }
+
+    val auth: FirebaseAuth? by lazy { createAuthentication() }
+    private val repository: MileageRepository by lazy {
+        createRepository()
+    }
+
+    private fun createAuthentication(): FirebaseAuth? {
+        if (
+            BuildConfig.FIREBASE_API_KEY.isBlank() ||
+                BuildConfig.FIREBASE_APP_ID.isBlank() ||
+                BuildConfig.FIREBASE_PROJECT_ID.isBlank()
+        )
+            return null
+        val options =
+            FirebaseOptions.Builder()
+                .setApiKey(BuildConfig.FIREBASE_API_KEY)
+                .setApplicationId(BuildConfig.FIREBASE_APP_ID)
+                .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
+                .build()
+        return FirebaseAuth.getInstance(FirebaseApp.initializeApp(this, options))
+    }
+
+    private fun createRepository(): MileageRepository {
         val db = Room.databaseBuilder(this, LocalDatabase::class.java, "mileage.db").build()
         val client = okhttp3.OkHttpClient.Builder().addInterceptor(ApiDiagnostics()).build()
-        val api = Retrofit.Builder().client(client).baseUrl(BuildConfig.API_BASE_URL).addConverterFactory(GsonConverterFactory.create()).build().create(MileageApi::class.java)
-        repository = MileageRepository(db.dao(), api, auth)
-    }
-    fun enqueueSync() {
-        val request = OneTimeWorkRequestBuilder<SyncWorker>().setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS).build()
-        WorkManager.getInstance(this).enqueueUniqueWork("fuel-sync", ExistingWorkPolicy.APPEND_OR_REPLACE, request)
-    }
-}
-class SyncWorker(context: android.content.Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
-    override suspend fun doWork(): Result {
-        val app = applicationContext as MileageApplication
-        if (app.auth?.currentUser == null) return Result.failure()
-        return try { if (app.repository.sync()) Result.retry() else Result.success() }
-        catch (error: retrofit2.HttpException) { if (error.code() in listOf(401, 403)) Result.failure() else Result.retry() }
-        catch (error: java.io.IOException) { Result.retry() }
-        catch (error: com.google.firebase.FirebaseNetworkException) { Result.retry() }
-        catch (error: com.google.firebase.auth.FirebaseAuthException) { Result.failure() }
-        catch (error: IllegalStateException) { Result.failure() }
+        val api =
+            Retrofit.Builder()
+                .client(client)
+                .baseUrl(BuildConfig.API_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(MileageApi::class.java)
+        return DefaultMileageRepository(
+            db.dao(),
+            api,
+            FirebaseAuthSession(auth),
+            ::logOperationFailure,
+        )
     }
 }

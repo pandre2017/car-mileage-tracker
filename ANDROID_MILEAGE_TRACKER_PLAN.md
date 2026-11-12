@@ -32,7 +32,7 @@ Agreed assumptions:
 | Android IDE | Android Studio |
 | Backend editor | Visual Studio Code |
 
-Use the supported LTS Node.js release available when implementation starts and pin it in the backend folder. Use npm with a committed lockfile. Keep backend code in small routes, services, and data-access folders; start Android with one app module and clear presentation/domain/data packages.
+Use the supported LTS Node.js release available when implementation starts and pin it in the backend folder. Use npm with a committed lockfile. Keep backend code in small routes, services, and data-access folders; use three Android Gradle modules: app, pure Kotlin domain, and Android-library data.
 
 ```mermaid
 flowchart LR
@@ -155,7 +155,7 @@ The Android client has no direct Firestore data access: deny mobile/web client r
 
 ## Android structure and quality
 
-Use presentation, domain, and data packages in one Android module initially. ViewModels expose immutable screen state through StateFlow. Compose renders state and sends actions through callbacks. Room is the local screen data source; repositories coordinate the API and cache. Constructor injection with a small manual composition root is enough for the starting app.
+Use separate `:app`, `:domain`, and `:data` Gradle modules. Domain is pure Kotlin/JVM; data is an Android library because it uses Room. ViewModels expose immutable screen state through StateFlow. Compose renders state and sends actions through callbacks. Room is the local screen data source; repositories coordinate the API and cache. Constructor injection with a small manual composition root is enough for the starting app.
 
 Plan focused checks for decimal parsing and price rounding, delayed odometer entries, duplicate retries, authorization, full-history cache replacement, and pending-record preservation. Include a small UI journey for creating a record. Use Firebase emulators for local backend integration work and avoid real Google sign-in as a dependency of most automated tests.
 

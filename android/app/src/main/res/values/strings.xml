@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_title">Car Mileage</string>
+    <string name="app_subtitle">Shared cars · fuel history</string>
+    <string name="sign_in_prompt">Sign in with your provisioned Google account.</string>
+    <string name="sign_in">Sign in with Google</string>
+    <string name="refresh_cars">Refresh cars</string>
+    <string name="refresh_history">Refresh history</string>
+    <string name="no_cars">No shared cars yet. Ask the administrator to provision them.</string>
+    <string name="add_fueling">Add fueling</string>
+    <string name="no_entries">No fuel records. Add your first fueling.</string>
+    <string name="record_fueling">Record fueling</string>
+    <string name="fuel_date">Date · YYYY-MM-DD</string>
+    <string name="odometer">Odometer · km</string>
+    <string name="liters">Liters</string>
+    <string name="total_paid">Total paid · EUR</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="never_refreshed">History has not been refreshed yet</string>
+    <string name="unit_price">Price per liter: EUR %1$s</string>
+    <string name="updated">Updated %1$s</string>
+    <string name="summary">%1$s L purchased · EUR %2$s</string>
+    <string name="entry_heading">%1$s · %2$d km</string>
+    <string name="entry_amounts">%1$s L · EUR %2$s</string>
+    <string name="entry_status">EUR %1$s/L · %2$s</string>
+</resources>
