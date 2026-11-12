@@ -22,4 +22,7 @@
     <string name="entry_heading">%1$s · %2$d km</string>
     <string name="entry_amounts">%1$s L · EUR %2$s</string>
     <string name="entry_status">EUR %1$s/L · %2$s</string>
+    <string name="view_all_fuelings">View all fuelings</string>
+    <string name="fuel_history_title">Fueling history</string>
+    <string name="back">Back</string>
 </resources>

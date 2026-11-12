@@ -1,5 +1,6 @@
 package com.pandre.mileage.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -93,10 +93,21 @@ fun MileageContent(
 ) {
     val cars = state.cars
     val selected = state.selectedCarId
-    val entries = state.entries
+    val entries = remember(state.entries) { sortFuelHistory(state.entries) }
+    var showingHistory by rememberSaveable(selected) { mutableStateOf(false) }
     val message = state.message
     val busy = state.loading
     val blocked = state.blocked
+    val historyVisible = showingHistory && signedIn && !blocked && selected != null
+    BackHandler(enabled = historyVisible) { showingHistory = false }
+    if (historyVisible) {
+        FuelHistoryScreen(
+            carName = cars.firstOrNull { it.id == selected }?.displayName.orEmpty(),
+            entries = entries,
+            onBack = { showingHistory = false },
+        )
+        return
+    }
     MaterialTheme {
         Surface(Modifier.fillMaxSize()) {
             Column(
@@ -154,7 +165,16 @@ fun MileageContent(
                                 )
                             } ?: stringResource(R.string.never_refreshed)
                         )
-                        Button(onClick = onOpenEntry) { Text(stringResource(R.string.add_fueling)) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onOpenEntry) {
+                                Text(stringResource(R.string.add_fueling))
+                            }
+                            if (entries.size > 5) {
+                                OutlinedButton(onClick = { showingHistory = true }) {
+                                    Text(stringResource(R.string.view_all_fuelings))
+                                }
+                            }
+                        }
                         Text(
                             stringResource(
                                 R.string.summary,
@@ -168,42 +188,8 @@ fun MileageContent(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.weight(1f),
                         ) {
-                            items(entries, key = { it.id }) { entry ->
-                                Card(Modifier.fillMaxWidth()) {
-                                    Column(
-                                        Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        Text(
-                                            stringResource(
-                                                R.string.entry_heading,
-                                                entry.fuelDate,
-                                                entry.odometerKm,
-                                            ),
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                        Text(
-                                            stringResource(
-                                                R.string.entry_amounts,
-                                                Amounts.decimal(entry.litersHundredths),
-                                                Amounts.decimal(entry.totalPriceCents),
-                                            )
-                                        )
-                                        Text(
-                                            stringResource(
-                                                R.string.entry_status,
-                                                Amounts.unitPrice(
-                                                    entry.totalPriceCents,
-                                                    entry.litersHundredths,
-                                                ),
-                                                entry.status.name.lowercase(),
-                                            )
-                                        )
-                                        entry.error?.let {
-                                            Text(it, color = MaterialTheme.colorScheme.error)
-                                        }
-                                    }
-                                }
+                            items(entries.take(5), key = { it.id }) { entry ->
+                                FuelEntryCard(entry)
                             }
                         }
                     }
@@ -337,6 +323,24 @@ private fun EmptyHistoryPreview() {
 @Composable
 private fun FuelHistoryPreview() {
     PreviewMileageContent(previewHistory)
+}
+
+@Preview(name = "More than five fuelings", group = "Mileage", showBackground = true)
+@Composable
+private fun MoreFuelingsPreview() {
+    PreviewMileageContent(
+        previewHistory.copy(
+            entries =
+                (1..6).map { day ->
+                    previewEntry(
+                        "preview-$day",
+                        "2026-11-0$day",
+                        53000L + day * 100,
+                        SyncStatus.SYNCED,
+                    )
+                }
+        )
+    )
 }
 
 @Preview(name = "Connection error", group = "Mileage", showBackground = true)

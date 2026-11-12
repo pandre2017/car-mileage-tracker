@@ -4,14 +4,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pandre.mileage.R
 import com.pandre.mileage.domain.Car
+import com.pandre.mileage.domain.FuelEntry
+import com.pandre.mileage.domain.SyncStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -102,6 +107,46 @@ class MileageScreenTest {
         content(MileageUiState(loading = true))
         compose.onNodeWithText(label(R.string.refresh_cars)).assertIsNotEnabled()
         compose.onNodeWithText(label(R.string.no_cars)).assertDoesNotExist()
+    }
+
+    @Test
+    fun fiveFuelingsDoNotOfferFullHistory() {
+        content(historyState(5))
+        compose.onNodeWithText(label(R.string.view_all_fuelings)).assertDoesNotExist()
+    }
+
+    @Test
+    fun sixFuelingsOfferGroupedHistoryAndBackReturnsToSummary() {
+        content(historyState(6))
+        compose.onNodeWithText("2025-11-01 · 1000 km").assertDoesNotExist()
+        compose.onNodeWithText(label(R.string.view_all_fuelings)).performClick()
+        compose.onNodeWithText(label(R.string.fuel_history_title)).assertIsDisplayed()
+        compose
+            .onNodeWithTag("full-fuel-history")
+            .performScrollToNode(hasText("2025-11-01 · 1000 km"))
+        compose.onNodeWithText("2025-11-01 · 1000 km").assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.back)).performClick()
+        compose.onNodeWithText(label(R.string.view_all_fuelings)).assertIsDisplayed()
+    }
+
+    private fun historyState(count: Int): MileageUiState {
+        val dates =
+            listOf(
+                "2025-11-01",
+                "2026-10-01",
+                "2026-11-01",
+                "2026-11-02",
+                "2026-11-03",
+                "2026-11-04",
+            )
+        return MileageUiState(
+            cars = listOf(Car("car", "Family car")),
+            selectedCarId = "car",
+            entries =
+                dates.take(count).map { date ->
+                    FuelEntry(date, "car", date, 1000, 4000, 6800, "test-user", SyncStatus.SYNCED)
+                },
+        )
     }
 
     private fun content(

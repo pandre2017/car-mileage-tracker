@@ -63,7 +63,7 @@ Five Compose screen tests exercise sign-in callbacks, car selection, fueling inp
 
 The test runner substitutes a plain Application so screen tests never initialize the production Firebase/WorkManager dependency graph. Fixtures are explicit and interactions use semantics rather than coordinates or sleeps. A dedicated GitHub Actions job runs them on API 36; CI execution is verified only after the workflow actually runs remotely.
 
-The installed Android 17 preview image failed in Espresso's input-device initialization before screen assertions. API 36 matches the app target and is the supported device test configuration used for this change.
+Compose's transitive Espresso 3.5.0 dependency failed during input-device initialization on newer emulator images, before screen assertions. The app explicitly declares Espresso 3.7.0, which replaces the reflective InputManager.getInstance call with getSystemService. CI continues to use API 36; compatibility with other images must be verified by running the suite on them.
 
 ## Application UseCases and outward ports
 
