@@ -17,6 +17,47 @@ fun config(name: String, fallback: String = "") =
 
 fun quoted(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
+// Count all commits reachable from HEAD, including merged backend and Android history.
+val shallowRepository =
+    providers
+        .exec {
+            workingDir(rootProject.projectDir)
+            commandLine("git", "rev-parse", "--is-shallow-repository")
+        }
+        .standardOutput
+        .asText
+        .get()
+        .trim()
+
+check(shallowRepository == "false") {
+    "App versioning requires complete Git history. Run git fetch --unshallow; use fetch-depth: 0 in CI."
+}
+
+val gitRevision =
+    providers
+        .exec {
+            workingDir(rootProject.projectDir)
+            commandLine("git", "rev-list", "--count", "HEAD")
+        }
+        .standardOutput
+        .asText
+        .get()
+        .trim()
+        .toInt()
+
+check(gitRevision in 1..2_100_000_000) { "Git commit count exceeds Android versionCode limits." }
+
+val appVersionName = "0.1.$gitRevision"
+
+tasks.register("printAppVersion") {
+    group = "help"
+    description = "Prints the Git-derived Android version name and code."
+    doLast {
+        logger.lifecycle("versionName=$appVersionName")
+        logger.lifecycle("versionCode=$gitRevision")
+    }
+}
+
 android {
     namespace = "com.pandre.mileage"
     compileSdk = 36
@@ -24,8 +65,8 @@ android {
         applicationId = "com.pandre.mileage"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = gitRevision
+        versionName = appVersionName
         testInstrumentationRunner = "com.pandre.mileage.MileageTestRunner"
         buildConfigField(
             "String",

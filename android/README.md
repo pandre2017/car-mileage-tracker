@@ -64,3 +64,15 @@ Android-specific guidance lives here: [AGENTS.md](AGENTS.md) and [the hidden .ag
 The ViewModel receives explicit domain UseCases. AddFuelEntryUseCase validates and saves before scheduling upload through SyncScheduler, implemented by WorkManagerSyncScheduler. A custom WorkerFactory injects SyncPendingFuelEntriesUseCase into the Worker. See [application UseCases](../docs/ANDROID_CONVENTIONS.md#application-usecases-and-outward-ports) for the responsibilities and test boundaries.
 
 See [per-car fueling estimates](../docs/CAR_STATISTICS.md) for formulas, limitations, initial range provisioning, and the non-destructive database upgrade.
+
+## App versioning
+
+`versionName` is `0.1.<revision>` and `versionCode` is `<revision>`, where revision is `git rev-list --count HEAD` for the complete monorepo history. Backend commits reachable from HEAD count too. From this Android folder, run:
+
+```bash
+./gradlew :app:printAppVersion
+```
+
+The count increases as commits are added to the release branch. Rebuilding the same commit or changing uncommitted files does not increment it. Build distributed updates from the same advancing branch: unrelated branches, rebases, resets, and force pushes do not provide a globally increasing counter. Commit counts are not unique release identifiers across branches.
+
+Git and a full checkout are required. GitHub Actions fetches full history (`fetch-depth: 0`) in both Android jobs. For a shallow local checkout, run `git fetch --unshallow`. Versioning fails explicitly rather than silently generating an incorrect code from incomplete history.
