@@ -17,6 +17,8 @@ jobs:
           java-version: '21'
       - run: bash android/scripts/kotlin-style.sh --check
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew :domain:test :data:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug :data:lintDebug --console=plain
         working-directory: android
@@ -35,6 +37,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools emulator'
       - uses: gradle/actions/setup-gradle@v4
       - name: Enable emulator acceleration
         run: |
