@@ -33,7 +33,17 @@ export type Entry = FuelInput & {
   createdAt: string;
 };
 export type Profile = { uid: string; displayName: string; email: string };
-export type Car = { id: string; displayName: string };
+export const estimatedRangeSchema = z
+  .number()
+  .int()
+  .positive()
+  .max(10_000_000)
+  .nullish();
+export type Car = {
+  id: string;
+  displayName: string;
+  estimatedFullTankRangeKm?: number | null;
+};
 export function validateHistory(input: FuelInput, history: Entry[]): void {
   if (history.some((entry) => entry.fuelDate === input.fuelDate)) {
     throw new ApiError(

@@ -26,6 +26,17 @@ test(
     };
     const id = randomUUID();
     try {
+      assert.equal(
+        (await store.cars(uid)).find((car) => car.id === carId)
+          ?.estimatedFullTankRangeKm,
+        null,
+      );
+      await db.doc(`cars/${carId}`).update({ estimatedFullTankRangeKm: 650 });
+      assert.equal(
+        (await store.cars(uid)).find((car) => car.id === carId)
+          ?.estimatedFullTankRangeKm,
+        650,
+      );
       await assert.rejects(store.history("stranger", carId));
       assert.equal((await store.create(uid, carId, id, input)).created, true);
       assert.equal((await store.create(uid, carId, id, input)).created, false);

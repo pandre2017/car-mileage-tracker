@@ -48,7 +48,7 @@ Copy `.firebaserc.example` to `.firebaserc` and replace `YOUR_PROJECT_ID` with y
 2. Register Android package `com.pandre.mileage`, add the debug/release signing fingerprints, and copy Firebase API key, app ID, project ID and OAuth **web/server client ID** into the Android build configuration described in `../android/README.md`.
 3. Each user signs in once through the Android app. First access may be denied until provisioning. In Firebase Console > Authentication > Users, copy each Firebase UID.
 4. In Firestore, create `users/UID` for each person: `enabled` boolean true, `displayName` string, `email` string.
-5. Create `cars/family-car` (or another simple ID) with `displayName` string, `memberUids` array containing the two exact UIDs, and `revision` integer 0. Repeat for each shared car.
+5. Create `cars/family-car` (or another simple ID) with `displayName` string, `memberUids` array containing the two exact UIDs, and `revision` integer 0. Repeat for each shared car. Optionally add `estimatedFullTankRangeKm` as a positive integer number (for example, `650`), at most 10,000,000. This is the initial expected kilometers per full tank, not tank capacity in liters. Existing cars may omit it. After changing it, tap **Refresh cars** in the app.
 6. Deploy the deny-all mobile/web rules in `firestore.rules`: `npx firebase deploy --only firestore:rules --project YOUR_PROJECT_ID`. The API server SDK uses IAM and performs its own authorization; rules do not restrict the server SDK.
 7. Confirm both users see the car, while a third unprovisioned account receives HTTP 403. Set a user's `enabled` to false to disable future API access. Manual console corrections appear on the next complete history refresh.
 

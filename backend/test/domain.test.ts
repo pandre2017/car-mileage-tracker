@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   inputSchema,
+  estimatedRangeSchema,
   validateHistory,
   sameInput,
   type Entry,
@@ -52,4 +53,11 @@ test("idempotency includes caller and all input values", () => {
     sameInput(entry, { ...input, totalPriceCents: 1 }, "one"),
     false,
   );
+});
+
+test("initial range accepts legacy absence and rejects invalid provisioned values", () => {
+  for (const value of [undefined, null, 650])
+    assert.equal(estimatedRangeSchema.safeParse(value).success, true);
+  for (const value of [0, -1, 1.5, "650", 10_000_001])
+    assert.equal(estimatedRangeSchema.safeParse(value).success, false);
 });

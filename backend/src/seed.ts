@@ -22,6 +22,7 @@ await getFirestore()
   .doc("cars/family-car")
   .set({
     displayName: "Family car",
+    estimatedFullTankRangeKm: 650,
     memberUids: ["driver-one", "driver-two"],
     revision: 0,
   });

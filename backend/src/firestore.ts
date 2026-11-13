@@ -5,6 +5,7 @@ import {
 } from "firebase-admin/firestore";
 import {
   ApiError,
+  estimatedRangeSchema,
   sameInput,
   validateHistory,
   type Store,
@@ -60,6 +61,9 @@ export class FirestoreStore implements Store {
     return cars.docs.map((car) => ({
       id: car.id,
       displayName: String(car.data().displayName),
+      estimatedFullTankRangeKm:
+        estimatedRangeSchema.safeParse(car.data().estimatedFullTankRangeKm)
+          .data ?? null,
     }));
   }
   async history(uid: string, carId: string) {

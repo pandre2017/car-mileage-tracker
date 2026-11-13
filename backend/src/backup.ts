@@ -2,7 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
-import { inputSchema } from "./domain.js";
+import { inputSchema, estimatedRangeSchema } from "./domain.js";
 
 const [operation, filename] = process.argv.slice(2);
 if (
@@ -32,6 +32,7 @@ const schema = z.object({
     z.object({
       id,
       displayName: z.string(),
+      estimatedFullTankRangeKm: estimatedRangeSchema,
       memberUids: z.array(z.string()),
       revision: z.number().int().nonnegative(),
       entries: z.array(
