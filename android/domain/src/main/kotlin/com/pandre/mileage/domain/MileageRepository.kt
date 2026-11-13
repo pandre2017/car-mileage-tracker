@@ -2,7 +2,7 @@ package com.pandre.mileage.domain
 
 import kotlinx.coroutines.flow.Flow
 
-data class Car(val id: String, val displayName: String)
+data class Car(val id: String, val displayName: String, val estimatedFullTankRangeKm: Long? = null)
 
 enum class SyncStatus {
     PENDING,

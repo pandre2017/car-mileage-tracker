@@ -62,3 +62,5 @@ Sync Gradle after opening this project. `settings.gradle.kts` includes `:app`, `
 Android-specific guidance lives here: [AGENTS.md](AGENTS.md) and [the hidden .agents/skills directory](.agents/skills/). Kotlin tooling is in [scripts/](scripts/). They are not Android source modules.
 
 The ViewModel receives explicit domain UseCases. AddFuelEntryUseCase validates and saves before scheduling upload through SyncScheduler, implemented by WorkManagerSyncScheduler. A custom WorkerFactory injects SyncPendingFuelEntriesUseCase into the Worker. See [application UseCases](../docs/ANDROID_CONVENTIONS.md#application-usecases-and-outward-ports) for the responsibilities and test boundaries.
+
+See [per-car fueling estimates](../docs/CAR_STATISTICS.md) for formulas, limitations, initial range provisioning, and the non-destructive database upgrade.

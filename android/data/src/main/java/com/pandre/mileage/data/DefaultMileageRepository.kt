@@ -26,7 +26,10 @@ class DefaultMileageRepository(
 ) : MileageRepository {
     private val syncLock = Mutex()
 
-    override fun observeCars() = dao.cars().map { cars -> cars.map { Car(it.id, it.displayName) } }
+    override fun observeCars() =
+        dao.cars().map { cars ->
+            cars.map { Car(it.id, it.displayName, it.estimatedFullTankRangeKm) }
+        }
 
     override fun observeEntries(carId: String) =
         dao.entries(carId).map { entries ->
@@ -49,7 +52,11 @@ class DefaultMileageRepository(
 
     override suspend fun loadCars() = withDomainErrors {
         api.me(session.authorization())
-        dao.replaceCars(api.cars(session.authorization()).map { CarEntity(it.id, it.displayName) })
+        dao.replaceCars(
+            api.cars(session.authorization()).map {
+                CarEntity(it.id, it.displayName, it.estimatedFullTankRangeKm)
+            }
+        )
     }
 
     override suspend fun refresh(carId: String) = withDomainErrors {

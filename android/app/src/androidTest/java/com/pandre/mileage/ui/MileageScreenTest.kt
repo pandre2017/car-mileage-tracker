@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pandre.mileage.R
 import com.pandre.mileage.domain.Car
+import com.pandre.mileage.domain.CarStatistics
 import com.pandre.mileage.domain.FuelEntry
 import com.pandre.mileage.domain.SyncStatus
 import org.junit.Assert.assertEquals
@@ -28,6 +30,40 @@ class MileageScreenTest {
 
     private fun label(id: Int) =
         InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
+
+    @Test
+    fun statisticsShowEstimatesAndPendingCaveat() {
+        content(
+            MileageUiState(
+                cars = listOf(Car("car", "Family car")),
+                selectedCarId = "car",
+                statistics =
+                    CarStatistics(
+                        consumptionHundredths = 750,
+                        nextFuelingOdometerKm = 54650,
+                        intervalCount = 5,
+                        includesPending = true,
+                    ),
+            )
+        )
+        compose.onNodeWithText("📉: 7.50 L/100km").assertIsDisplayed()
+        compose.onNodeWithText("⛽: 54650 km").assertIsDisplayed()
+        compose
+            .onNodeWithContentDescription(label(R.string.statistics_pending), substring = true)
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun statisticsWithoutHistoryExplainWhatIsNeeded() {
+        content(MileageUiState(cars = listOf(Car("car", "Family car")), selectedCarId = "car"))
+        compose.onNodeWithText("Fuel history · Not updated yet").assertIsDisplayed()
+        compose.onNodeWithText("L purchased", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("📉: — L/100km").assertIsDisplayed()
+        compose.onNodeWithText("⛽: — km").assertIsDisplayed()
+        compose
+            .onNodeWithContentDescription(label(R.string.prediction_needs_range), substring = true)
+            .assertIsDisplayed()
+    }
 
     @Test
     fun signedOutScreenOffersGoogleSignIn() {

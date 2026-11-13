@@ -6,7 +6,11 @@ import retrofit2.http.Header
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-data class CarDto(val id: String, val displayName: String)
+data class CarDto(
+    val id: String,
+    val displayName: String,
+    val estimatedFullTankRangeKm: Long? = null,
+)
 
 data class Profile(val uid: String, val displayName: String, val email: String)
 

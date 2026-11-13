@@ -118,10 +118,6 @@ fun MileageContent(
                     stringResource(R.string.app_title),
                     style = MaterialTheme.typography.headlineLarge,
                 )
-                Text(
-                    stringResource(R.string.app_subtitle),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
                 if (!signedIn || blocked) {
                     Text(stringResource(R.string.sign_in_prompt))
                     Button(onClick = onSignIn) { Text(stringResource(R.string.sign_in)) }
@@ -156,14 +152,18 @@ fun MileageContent(
                     }
                     if (selected != null) {
                         Text(
-                            state.refreshedAt?.let {
-                                stringResource(
-                                    R.string.updated,
-                                    DateTimeFormatter.ofPattern("dd MMM HH:mm")
-                                        .withZone(ZoneId.of("Europe/Lisbon"))
-                                        .format(Instant.ofEpochMilli(it)),
-                                )
-                            } ?: stringResource(R.string.never_refreshed)
+                            stringResource(
+                                R.string.history_update,
+                                state.refreshedAt?.let {
+                                    stringResource(
+                                        R.string.updated,
+                                        DateTimeFormatter.ofPattern("dd MMM HH:mm")
+                                            .withZone(ZoneId.of("Europe/Lisbon"))
+                                            .format(Instant.ofEpochMilli(it)),
+                                    )
+                                } ?: stringResource(R.string.never_refreshed),
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = onOpenEntry) {
@@ -175,13 +175,7 @@ fun MileageContent(
                                 }
                             }
                         }
-                        Text(
-                            stringResource(
-                                R.string.summary,
-                                Amounts.decimal(state.totals.litersHundredths),
-                                Amounts.decimal(state.totals.totalPriceCents),
-                            )
-                        )
+                        CarStatisticsLabel(state.statistics)
                         if (entries.isEmpty() && !busy && message == null)
                             Text(stringResource(R.string.no_entries))
                         LazyColumn(

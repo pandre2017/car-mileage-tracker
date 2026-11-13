@@ -31,6 +31,7 @@ class RepositoryTest {
         repository.loadCars()
         repository.refresh("a")
         assertEquals("Car A", repository.observeCars().first().single().displayName)
+        assertEquals(650L, repository.observeCars().first().single().estimatedFullTankRangeKm)
         val entry = repository.observeEntries("a").first().single()
         assertEquals(SyncStatus.SYNCED, entry.status)
         assertEquals(4237L, entry.litersHundredths)
@@ -102,7 +103,7 @@ private class FakeApi : MileageApi {
 
     override suspend fun cars(auth: String): List<CarDto> {
         carRequests++
-        return listOf(CarDto("a", "Car A"))
+        return listOf(CarDto("a", "Car A", 650))
     }
 
     override suspend fun history(auth: String, carId: String) = listOf(entry)

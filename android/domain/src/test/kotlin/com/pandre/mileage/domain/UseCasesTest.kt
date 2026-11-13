@@ -2,6 +2,7 @@ package com.pandre.mileage.domain
 
 import com.pandre.mileage.domain.usecase.AddFuelEntryUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarHistoryUseCase
+import com.pandre.mileage.domain.usecase.ObserveCarStatisticsUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarsUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarHistoryUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarsUseCase
@@ -24,6 +25,33 @@ class UseCasesTest {
 
     private val scheduler = SyncScheduler { events += "schedule" }
     private val input = NewFuelEntry("car", "2026-11-01", 1200, 4237, 7520)
+
+    @Test
+    fun statisticsUseCaseReadsSelectedCarRangeAndHistory() = runTest {
+        repository.cars.value =
+            listOf(Car("car", "Family car", 650), Car("other", "Other car", 900))
+        repository.entries.value =
+            listOf(
+                FuelEntry(
+                    "one",
+                    "car",
+                    "2026-11-01",
+                    1000,
+                    4000,
+                    6800,
+                    "driver",
+                    SyncStatus.PENDING,
+                )
+            )
+        val statistics = ObserveCarStatisticsUseCase(repository)("car").first()
+        assertEquals(1650L, statistics.nextFuelingOdometerKm)
+        assertTrue(statistics.includesPending)
+        repository.cars.value = listOf(Car("car", "Family car", 700))
+        assertEquals(
+            1700L,
+            ObserveCarStatisticsUseCase(repository)("car").first().nextFuelingOdometerKm,
+        )
+    }
 
     @Test
     fun validSavePrecedesScheduling() = runTest {
@@ -107,6 +135,7 @@ class UseCasesTest {
 private class RecordingRepository : MileageRepository {
     val events = mutableListOf<String>()
     val cars = MutableStateFlow(emptyList<Car>())
+    val entries = MutableStateFlow(emptyList<FuelEntry>())
     val time = MutableStateFlow<Long?>(null)
     var failure: Exception? = null
     var saved: NewFuelEntry? = null
@@ -117,7 +146,7 @@ private class RecordingRepository : MileageRepository {
 
     override fun observeEntries(carId: String): MutableStateFlow<List<FuelEntry>> {
         observedCar = carId
-        return MutableStateFlow(emptyList())
+        return entries
     }
 
     override fun observeRefreshTime(carId: String) = time

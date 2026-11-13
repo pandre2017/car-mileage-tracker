@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pandre.mileage.domain.Amounts
 import com.pandre.mileage.domain.Car
+import com.pandre.mileage.domain.CarStatistics
 import com.pandre.mileage.domain.FuelEntry
 import com.pandre.mileage.domain.FuelTotals
 import com.pandre.mileage.domain.MileageException
@@ -12,6 +13,7 @@ import com.pandre.mileage.domain.MileageProblem
 import com.pandre.mileage.domain.NewFuelEntry
 import com.pandre.mileage.domain.usecase.AddFuelEntryUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarHistoryUseCase
+import com.pandre.mileage.domain.usecase.ObserveCarStatisticsUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarsUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarHistoryUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarsUseCase
@@ -19,6 +21,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,6 +30,7 @@ data class MileageUiState(
     val selectedCarId: String? = null,
     val entries: List<FuelEntry> = emptyList(),
     val refreshedAt: Long? = null,
+    val statistics: CarStatistics = CarStatistics(),
     val loading: Boolean = false,
     val message: String? = null,
     val blocked: Boolean = false,
@@ -42,6 +46,7 @@ class MileageViewModel(
     private val refreshCars: RefreshCarsUseCase,
     private val refreshCarHistory: RefreshCarHistoryUseCase,
     private val addFuelEntry: AddFuelEntryUseCase,
+    private val observeCarStatistics: ObserveCarStatisticsUseCase,
     private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(MileageUiState(selectedCarId = savedState["carId"]))
@@ -72,6 +77,7 @@ class MileageViewModel(
                 it.copy(
                     selectedCarId = id,
                     entries = emptyList(),
+                    statistics = CarStatistics(),
                     refreshedAt = null,
                     editing = false,
                 )
@@ -114,12 +120,17 @@ class MileageViewModel(
     private fun observeHistory(carId: String) {
         historyJob?.cancel()
         historyJob = viewModelScope.launch {
-            observeCarHistory(carId).collect { (entries, time) ->
-                mutableState.update {
-                    if (it.selectedCarId == carId) it.copy(entries = entries, refreshedAt = time)
-                    else it
+            combine(observeCarHistory(carId), observeCarStatistics(carId)) { history, statistics ->
+                    history to statistics
                 }
-            }
+                .collect { (history, statistics) ->
+                    val (entries, time) = history
+                    mutableState.update {
+                        if (it.selectedCarId == carId)
+                            it.copy(entries = entries, refreshedAt = time, statistics = statistics)
+                        else it
+                    }
+                }
         }
     }
 

@@ -26,6 +26,7 @@ class MainActivity : ComponentActivity() {
                     app.refreshCars,
                     app.refreshCarHistory,
                     app.addFuelEntry,
+                    app.observeCarStatistics,
                     createSavedStateHandle(),
                 )
             }

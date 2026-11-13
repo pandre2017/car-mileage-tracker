@@ -12,6 +12,7 @@ import com.pandre.mileage.domain.SyncScheduler
 import com.pandre.mileage.domain.SyncStatus
 import com.pandre.mileage.domain.usecase.AddFuelEntryUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarHistoryUseCase
+import com.pandre.mileage.domain.usecase.ObserveCarStatisticsUseCase
 import com.pandre.mileage.domain.usecase.ObserveCarsUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarHistoryUseCase
 import com.pandre.mileage.domain.usecase.RefreshCarsUseCase
@@ -51,6 +52,21 @@ class MileageViewModelTest {
         store.clear()
         Dispatchers.resetMain()
     }
+
+    @Test
+    fun selectedCarStatisticsUpdateWhenRangeIsLoadedAndResetForAnotherCar() =
+        runTest(dispatcher) {
+            val repository = FakeMileageRepository()
+            val model = model(repository)
+            model.load()
+            advanceUntilIdle()
+            model.select("a")
+            advanceUntilIdle()
+            assertEquals(1850L, model.state.value.statistics.nextFuelingOdometerKm)
+            model.select("b")
+            advanceUntilIdle()
+            assertNull(model.state.value.statistics.nextFuelingOdometerKm)
+        }
 
     @Test
     fun loadingFailureAndRetryExposeCompleteImmutableState() =
@@ -152,6 +168,7 @@ class MileageViewModelTest {
             RefreshCarsUseCase(repository, scheduler),
             RefreshCarHistoryUseCase(repository, scheduler),
             AddFuelEntryUseCase(repository, scheduler),
+            ObserveCarStatisticsUseCase(repository),
             saved,
         )
 }
@@ -176,7 +193,7 @@ private class FakeMileageRepository : MileageRepository {
 
     override suspend fun loadCars() {
         loadFailure?.let { throw it }
-        cars.value = listOf(Car("a", "Car A"))
+        cars.value = listOf(Car("a", "Car A", 650))
     }
 
     override suspend fun refresh(carId: String) {

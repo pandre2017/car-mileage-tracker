@@ -131,6 +131,13 @@
                       },
                       "displayName": {
                         "type": "string"
+                      },
+                      "estimatedFullTankRangeKm": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000000,
+                        "description": "Optional initial estimated kilometers per full tank; absent or null for unconfigured cars.",
+                        "nullable": true
                       }
                     }
                   }

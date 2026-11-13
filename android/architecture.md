@@ -108,7 +108,7 @@ The repository stays private to the composition root. Presentation receives appl
 
 ### ViewModel injection
 
-[MainActivity](app/src/main/java/com/pandre/mileage/MainActivity.kt) uses `viewModelFactory` and `initializer` to pass the five observation/refresh/save UseCases and `SavedStateHandle` into `MileageViewModel`. The ViewModel never retrieves the Application, DAO, Retrofit client, or WorkManager.
+[MainActivity](app/src/main/java/com/pandre/mileage/MainActivity.kt) uses `viewModelFactory` and `initializer` to pass the six observation/refresh/save UseCases and `SavedStateHandle` into `MileageViewModel`. The ViewModel never retrieves the Application, DAO, Retrofit client, or WorkManager.
 
 The Activity accesses application-scoped dependencies at the composition boundary. That lookup is kept out of business and presentation classes.
 
@@ -133,6 +133,7 @@ The project uses manual constructor injection without Hilt, Dagger, or Koin. Wir
 | --- | --- |
 | `ObserveCarsUseCase` | Exposes the cached accessible-car stream through the domain contract |
 | `ObserveCarHistoryUseCase` | Combines entries and last-refresh time into `CarHistory` |
+| `ObserveCarStatisticsUseCase` | Observes car configuration and cached records to derive consumption and next-fueling estimates |
 | `RefreshCarsUseCase` | Refreshes cars, then schedules pending-upload recovery after success |
 | `RefreshCarHistoryUseCase` | Validates car identity, refreshes its history, then schedules upload recovery |
 | `AddFuelEntryUseCase` | Validates car identity and input, saves locally, then schedules upload |
@@ -209,3 +210,7 @@ Connected tests use an API 36 emulator. See [verification history](../docs/IMPLE
 ## Engineering guidance
 
 [AGENTS.md](AGENTS.md) defines the Android project conventions. The six workflows in [.agents/skills/](.agents/skills/) guide Kotlin style, architecture, feature development, investigation and testing. [The conventions guide](../docs/ANDROID_CONVENTIONS.md) describes formatting tooling and testing practices in more detail.
+
+## Fueling statistics
+
+`ObserveCarStatisticsUseCase` combines the selected car configuration and cached entries, using pure Kotlin `CarStatistics` calculations. `MileageViewModel` receives it through constructor injection and resets statistics when switching cars. Compose renders the returned estimates without reading repositories or calculating business formulas. Room migration 1 → 2 adds the nullable initial range column without destroying pending records. See [statistics behavior and provisioning](../docs/CAR_STATISTICS.md) for formulas and assumptions.

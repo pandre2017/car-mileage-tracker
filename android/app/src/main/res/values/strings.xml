@@ -1,6 +1,6 @@
 <resources>
     <string name="app_title">Car Mileage</string>
-    <string name="app_subtitle">Shared cars · fuel history</string>
+    <string name="history_update">Fuel history · %1$s</string>
     <string name="sign_in_prompt">Sign in with your provisioned Google account.</string>
     <string name="sign_in">Sign in with Google</string>
     <string name="refresh_cars">Refresh cars</string>
@@ -15,14 +15,25 @@
     <string name="total_paid">Total paid · EUR</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
-    <string name="never_refreshed">History has not been refreshed yet</string>
+    <string name="never_refreshed">Not updated yet</string>
     <string name="unit_price">Price per liter: EUR %1$s</string>
     <string name="updated">Updated %1$s</string>
-    <string name="summary">%1$s L purchased · EUR %2$s</string>
     <string name="entry_heading">%1$s · %2$d km</string>
     <string name="entry_amounts">%1$s L · EUR %2$s</string>
     <string name="entry_status">EUR %1$s/L · %2$s</string>
     <string name="view_all_fuelings">View all fuelings</string>
     <string name="fuel_history_title">Fueling history</string>
     <string name="back">Back</string>
+    <string name="consumption_compact">📉: %1$s L/100km</string>
+    <string name="next_fueling_compact">⛽: %1$s km</string>
+    <string name="estimated_consumption">Estimated consumption: %1$s L/100 km</string>
+    <string name="consumption_needs_history">Consumption: not enough valid history</string>
+    <string name="next_fueling_estimate">Next fueling around %1$d km</string>
+    <string name="prediction_intervals">Based on the last %1$d fueling intervals</string>
+    <string name="prediction_initial_assumption">Based on initial range, assuming the last fueling left a full tank</string>
+    <string name="initial_range">Initial estimated range: %1$d km · add a fueling for an odometer prediction</string>
+    <string name="prediction_needs_range">Next fueling: initial range estimate or more history needed</string>
+    <string name="statistics_pending">Includes unsynced records</string>
+    <string name="statistics_invalid_history">Check fueling dates and odometer readings before using estimates</string>
+    <string name="statistics_disclaimer">Estimates from fueling records; partial fills can affect accuracy.</string>
 </resources>

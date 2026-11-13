@@ -9,10 +9,16 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "cars")
-data class CarEntity(@PrimaryKey val id: String, val displayName: String)
+data class CarEntity(
+    @PrimaryKey val id: String,
+    val displayName: String,
+    val estimatedFullTankRangeKm: Long? = null,
+)
 
 @Entity(tableName = "entries")
 data class EntryEntity(
@@ -77,9 +83,18 @@ interface MileageDao {
 
 @Database(
     entities = [CarEntity::class, EntryEntity::class, RefreshEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class LocalDatabase : RoomDatabase() {
     abstract fun dao(): MileageDao
+
+    companion object {
+        val MIGRATION_1_2 =
+            object : Migration(1, 2) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE cars ADD COLUMN estimatedFullTankRangeKm INTEGER")
+                }
+            }
+    }
 }
