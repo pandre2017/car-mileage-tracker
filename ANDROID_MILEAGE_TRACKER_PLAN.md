@@ -195,12 +195,14 @@ Entry editing/deletion in the app, invitations, role management, realtime update
 
 The plan draws on the supplied notes about Compose and state-driven UI, Clean Architecture and offline-first data flow, interview system-design trade-offs, and reusable engineering quality practices. The AI engineering notes also emphasize checking current documentation and retaining engineering ownership of generated suggestions.
 
-- [Android architecture interview guide](/Users/pandre/Documents/my_doc/android-architecture-interview-guide.md)
-- [Compose versus XML quick reference](/Users/pandre/Documents/my_doc/compose-vs-xml-quick-reference.md)
-- [Senior/Lead Android interview preparation](/Users/pandre/Documents/my_doc/Interview%20Prep%20%E2%80%94%20Senior%20Lead%20Android%20%26%20Team%20Leader.md)
-- [Technical interview questions: Android, backend, and leadership](/Users/pandre/Documents/my_doc/Top%2050%20Technical%20Interview%20Questions%20%E2%80%94%20Senior%20Lead%20Android%2C%20Backend%20%26%20Team%20Leader.md)
-- [Transferable engineering practices](/Users/pandre/Documents/my_doc/transferable-engineering-practices.md.docx)
-- [AI engineering concepts for interviews](/Users/pandre/Documents/my_doc/ai-concepts-interview-guide.md)
+The supplied reference documents are not included in this repository:
+
+- Android architecture interview guide
+- Compose versus XML quick reference
+- Senior/Lead Android interview preparation
+- Technical interview questions: Android, backend, and leadership
+- Transferable engineering practices
+- AI engineering concepts for interviews
 
 Current platform references:
 
